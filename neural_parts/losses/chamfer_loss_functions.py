@@ -68,10 +68,9 @@ def true_chamfer_loss(predictions, targets, config):
 
     # Compute the pairwise distances and put a large number in points that
     # should be ignored
-    dists = ((y_prim[:, :, :, None] - points[:, None, None])**2)
-    dists = torch.sqrt(dists.sum(-1))
+    dists = torch.sqrt(((y_prim[:, :, :, None] - points[:, None, None])**2).sum(-1))
 
-    # Compute the target to primitive distances by setting to inf all the
+    # Compute the target to primitve distances by setting to inf all the
     # distances that should be ignored in order for the min() operation to
     # ignore them
     target_dists = dists.masked_fill(internal, float("inf"))
@@ -125,7 +124,7 @@ def normal_consistency_loss(predictions, targets, config):
     ]
 
     # Compute the prediction normals by computing the gradient of the implicit
-    # surface w.r.t. to the target points
+    # surface wrt to the target points
     predicted_normals = torch.autograd.grad(
         phi_surface.sum(),
         targets,

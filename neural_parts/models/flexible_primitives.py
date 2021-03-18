@@ -63,6 +63,15 @@ class FlexiblePrimitives(nn.Module):
         #  0 is the boundary hence our primitive
         return norm - self.radius, ldj
 
+    def euclidean_implicit_surface(self, F, y, S=200):
+        phi, ldj = self.implicit_surface(F, y)
+        y_prim = self.points_on_primitives(F, S=S, random=True, union_surface=False)
+
+        diff = y[:, None, :, None] - y_prim[:, :, None, :]
+        dists, _ = torch.sqrt((diff**2).sum(-1)).min(1)
+
+        return dists * torch.sign(phi), ldj
+
     def points_on_primitives(self, F, S=200, random=True, union_surface=True,
                              mesh=False, edges=False):
         """Compute points on the primitives in world coordinates given per
@@ -186,6 +195,17 @@ def compute_predictions_from_features(F, network, targets, config):
     if config["network"].get("phi_volume", False):
         predictions["phi_volume"], predictions["ldj_volume"] = \
             network.implicit_surface(F, targets[0])
+
+    # Compute the euclidean implicit surface value per primitive per point in
+    # space if needed
+    # NOTE: It overrides the plain 'phi_volume' for backwards compatibility
+    if config["network"].get("euclidean_phi_volume", False):
+        predictions["phi_volume"], predictions["ldj_volume"] = \
+            network.euclidean_implicit_surface(
+                F,
+                targets[0],
+                S=config["network"].get("n_points_on_sphere", 200)
+            )
 
     # Compute the implicit surface value per primitive per point on the target
     # surface if needed

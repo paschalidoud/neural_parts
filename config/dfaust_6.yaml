@@ -1,0 +1,74 @@
+data:
+    dataset_factory: ImageDatasetForChamferAndIOU
+    n_points_in_mesh: 5000
+    n_points_on_mesh: 1500
+    equal: true
+    normalize: false
+    random_view: false
+    input_dims: 3
+    dataset_directory: "../demo/D-FAUST/"
+    splits_file: "../config/d-faust_splits.csv"
+    dataset_type: "dynamic_faust"
+    mesh_folder: "mesh_seq_2"
+    points_folder: "points_seq_2"
+    surface_points_folder: "surface_points_seq_2"
+    renderings_folder: "renderings-downsampled_2"
+
+network:
+    type: flexible_primitives
+    sphere_radius: 0.25
+    n_primitives: 6
+    n_points_on_sphere: 200
+    euclidean_phi_volume: true
+    phi_surface: true
+    y_prim: true
+    with_dropout: false
+
+feature_extractor:
+    type: resnet18
+    feature_size: 256
+    freeze_bn: true
+
+invertible_network:
+    type: simple_nvp
+    n_blocks: 4
+    hidden_size: 256
+    checkpoint: false
+    normalize: true
+    explicit_affine: true
+
+projection_layer:
+    type: simple
+    proj_dims: 128
+
+loss:
+    type:
+        - true_chamfer_loss
+        - normal_consistency_loss
+        - implicit_surface_loss
+        - min_points_loss
+        - non_overlapping_regularizer
+    weights: [0.3, 0.01, 1.0, 0.01, 0.1]
+    sharpness: 250
+    min_n_points: 10
+    max_shared_points: 1.95
+
+metrics:
+    - iou
+
+training:
+    splits: ["train", "val"]
+    epochs: 1500
+    steps_per_epoch: 500
+    save_frequency: 10
+    batch_size: 1
+    aggregate: 2
+    optimizer: RAdam
+    momentum: 0.9
+    lr: 0.00005
+    weight_decay: 0.0
+
+validation:
+    splits: ["train", "val"]
+    frequency: 100
+    batch_size: 1

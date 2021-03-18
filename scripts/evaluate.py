@@ -101,22 +101,12 @@ def main(argv):
     )
 
     parser.add_argument(
-        "dataset_directory",
-        help="Path to the directory containing the dataset"
+        "config_file",
+        help="Path to the file that contains the experiment configuration"
     )
     parser.add_argument(
         "output_directory",
         help="Save the output files in that directory"
-    )
-    parser.add_argument(
-        "--train_test_splits_file",
-        default="../config/all.csv",
-        help="Path to the train-test splits file"
-    )
-    parser.add_argument(
-        "--config_file",
-        default="../config/default.yaml",
-        help="Path to the file that contains the experiment configuration"
     )
     parser.add_argument(
         "--weight_file",
@@ -145,9 +135,6 @@ def main(argv):
     # Instantiate a dataloader to generate the samples for evaluation
     dataset = build_dataset(
         config,
-        args.dataset_directory,
-        args.dataset_type,
-        args.train_test_splits_file,
         args.model_tags,
         args.category_tags,
         config["validation"]["splits"],

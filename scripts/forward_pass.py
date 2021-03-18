@@ -19,22 +19,13 @@ def main(argv):
         description="Do the forward pass and estimate a set of primitives"
     )
     parser.add_argument(
-        "dataset_directory",
-        help="Path to the directory containing the dataset"
+        "config_file",
+        default="../config/default.yaml",
+        help="Path to the file that contains the experiment configuration"
     )
     parser.add_argument(
         "output_directory",
         help="Save the output files in that directory"
-    )
-    parser.add_argument(
-        "--train_test_splits_file",
-        default="../config/all.csv",
-        help="Path to the train-test splits file"
-    )
-    parser.add_argument(
-        "--config_file",
-        default="../config/default.yaml",
-        help="Path to the file that contains the experiment configuration"
     )
     parser.add_argument(
         "--weight_file",
@@ -60,12 +51,10 @@ def main(argv):
     # Build the network architecture to be used for training
     network, _, _ = build_network(config, args.weight_file, device=device)
     network.eval()
+
     # Instantiate a dataloader to generate the samples for evaluation
     dataloader = build_dataloader(
         config,
-        args.dataset_directory,
-        args.dataset_type,
-        args.train_test_splits_file,
         args.model_tags,
         args.category_tags,
         ["train", "val", "test"],
@@ -82,7 +71,7 @@ def main(argv):
             F = network.compute_features(X)
             phi_volume, _ = network.implicit_surface(F, targets[0])
             y_pred, faces = network.points_on_primitives(
-                F, 10000, random=False, mesh=True, union_surface=False
+                F, 5000, random=False, mesh=True, union_surface=False
             )
             predictions = {}
             predictions["phi_volume"] = phi_volume

@@ -40,10 +40,8 @@ class CouplingLayer(nn.Module):
 
 
 class SimpleNVP(nn.Module):
-    def __init__(
-        self, n_layers, feature_dims, hidden_size, projection,
-        checkpoint=True, normalize=True, explicit_affine=True
-    ):
+    def __init__(self, n_layers, feature_dims, hidden_size, projection, checkpoint=True,
+                 normalize=True, explicit_affine=True):
         super().__init__()
         self._checkpoint = checkpoint
         self._normalize = normalize
@@ -58,6 +56,7 @@ class SimpleNVP(nn.Module):
         self.layers = nn.ModuleList()
         for i in range(n_layers):
             mask = torch.zeros(input_dims)
+            # mask[torch.arange(input_dims) % 2 == (i%2)] = 1
             mask[torch.randperm(input_dims)[:2]] = 1
 
             map_s = nn.Sequential(

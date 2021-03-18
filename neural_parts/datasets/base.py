@@ -17,9 +17,6 @@ def splits_factory(dataset_type):
 
 def build_dataset(
     config,
-    dataset_directory,
-    dataset_type,
-    train_test_splits_file,
     model_tags,
     category_tags,
     keep_splits,
@@ -27,6 +24,9 @@ def build_dataset(
     cache_size=0
 ):
     # Create a dataset instance to generate the samples for training
+    dataset_directory = config["data"]["dataset_directory"]
+    dataset_type = config["data"]["dataset_type"]
+    train_test_splits_file = config["data"]["splits_file"]
     dataset = dataset_factory(
         config["data"]["dataset_factory"],
         (ModelCollectionBuilder(config)
@@ -45,9 +45,6 @@ def build_dataset(
 
 def build_dataloader(
     config,
-    dataset_directory,
-    dataset_type,
-    train_test_splits_file,
     model_tags,
     category_tags,
     split,
@@ -60,9 +57,6 @@ def build_dataloader(
     # Create a dataset instance to generate the samples for training
     dataset = build_dataset(
         config,
-        dataset_directory,
-        dataset_type,
-        train_test_splits_file,
         model_tags,
         category_tags,
         split,

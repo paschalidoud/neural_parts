@@ -16,7 +16,7 @@ def get_loss(loss_types, config):
         "normal_consistency_loss": normal_consistency_loss,
         "min_points_loss": min_points_loss,
         "size_regularizer": size_regularizer,
-        "non_overlapping_regularizer": non_overlapping_regularizer
+        "non_overlapping_regularizer": non_overlapping_regularizer,
     }
 
     return weighted_sum_of_losses(
@@ -45,6 +45,7 @@ def size_regularizer(predictions, target, config):
     StatsLogger.instance()["size"].value = loss.item()
 
     return loss
+
 
 def non_overlapping_regularizer(predictions, target, config):
     max_shared_points = config.get("max_shared_points", 2)

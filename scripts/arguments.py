@@ -1,16 +1,5 @@
 def add_dataset_parameters(parser):
     parser.add_argument(
-        "--dataset_type",
-        default="shapenet_v1",
-        choices=[
-            "shapenet_v1",
-            "dynamic_faust",
-            "freihand",
-            "turbosquid_animal"
-        ],
-        help="The type of the dataset type to be used"
-    )
-    parser.add_argument(
         "--model_tags",
         type=lambda x: x.split(","),
         default=[],

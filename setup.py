@@ -56,7 +56,6 @@ def get_install_requirements():
         "torchvision",
         "pyyaml",
         "trimesh",
-        "pycollada",
         "tqdm"
     ]
 
@@ -80,7 +79,7 @@ def setup_package():
             "Topic :: Scientific/Engineering",
             "Programming Language :: Python",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.8",
         ],
         packages=find_packages(exclude=["docs", "tests", "scripts"]),
         install_requires=get_install_requirements(),

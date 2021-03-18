@@ -34,8 +34,7 @@ def implicit_surface_loss(predictions, targets, config):
             primitive_inside_outside, dim=-1, keepdims=True
         )
     else:
-        union_inside_outside = primitive_inside_outside.max(-1, keepdims=True)
-        union_inside_outside = union_inside_outside[0]
+        union_inside_outside = primitive_inside_outside.max(-1, keepdims=True)[0]
 
     # Compute the binary classification loss
     loss = torch.nn.functional.binary_cross_entropy_with_logits(
@@ -118,7 +117,7 @@ def min_points_loss(predictions, targets, config):
     # Mask all the points that are not internal to the target shape
     implicit = phi_volume + ((1-gt_labels) * 1e6)
 
-    # Get the top k points per primitive
+    # Get the the top k points per primitive
     implicit = torch.topk(implicit, k, dim=1, largest=False, sorted=False)[0]
 
     # Make sure that they are inside

@@ -1,0 +1,19 @@
+name: neural_parts
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - cython=0.29.21
+  - numpy=1.19.1
+  - pyyaml=5.3.1
+  - python=3.8
+  - pytorch=1.6.0
+  - torchvision=0.7.0
+  - pillow=7.2.0
+  - tqdm=4.50.2
+  - trimesh=3.8.10
+  - matplotlib=3.3.1
+  - wxpython=4.0.7
+  - pip:
+    - simple_3dviz==0.2.1

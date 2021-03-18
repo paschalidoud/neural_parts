@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-"""Script used for performing a forward pass on a previously trained model and
-visualizing the predicted primitives.
-"""
 import argparse
 import os
 import sys
@@ -16,8 +13,6 @@ from simple_3dviz.behaviours.misc import LightToCamera
 from simple_3dviz.behaviours.keyboard import SnapshotOnKey
 from simple_3dviz.behaviours.movements import CameraTrajectory
 from simple_3dviz.behaviours.trajectory import Circle
-from simple_3dviz.behaviours.io import SaveFrames, SaveGif
-from simple_3dviz.utils import render
 from simple_3dviz.window import show
 
 from arguments import add_dataset_parameters
@@ -25,7 +20,8 @@ from utils import load_config, points_on_sphere
 from visualization_utils import scene_init, load_ground_truth, \
     get_colors, jet, colormap
 
-from neural_parts.datasets import build_dataset
+from neural_parts.datasets.dataset import dataset_factory
+from neural_parts.datasets.model_collections import ModelCollectionBuilder
 from neural_parts.models import build_network
 from neural_parts.utils import sphere_mesh
 from neural_parts.metrics import iou_metric
@@ -40,7 +36,8 @@ def main(argv):
         help="Path to the file that contains the experiment configuration"
     )
     parser.add_argument(
-        "output_directory",
+        "--output_directory",
+        default="../demo/output/",
         help="Save the output files in that directory"
     )
     parser.add_argument(
@@ -53,21 +50,6 @@ def main(argv):
         "--prediction_file",
         default=None,
         help="The path to the predicted primitives"
-    )
-    parser.add_argument(
-        "--save_frames",
-        help="Path to save the visualization frames to"
-    )
-    parser.add_argument(
-        "--without_screen",
-        action="store_true",
-        help="Perform no screen rendering"
-    )
-    parser.add_argument(
-        "--n_frames",
-        type=int,
-        default=200,
-        help="Number of frames to be rendered"
     )
     parser.add_argument(
         "--background",
@@ -110,26 +92,10 @@ def main(argv):
         help="Visualize the target mesh"
     )
     parser.add_argument(
-        "--no_color",
-        action="store_true",
-        help="Use the same color for all the primitives"
-    )
-    parser.add_argument(
-        "--show_vertices",
-        action="store_true",
-        help="Show the vertices as a sphere cloud"
-    )
-    parser.add_argument(
         "--n_vertices",
         type=int,
         default=10000,
         help="How many vertices to use per part"
-    )
-    parser.add_argument(
-        "--only_part",
-        type=int,
-        default=None,
-        help="Show only a specific part if given"
     )
 
     add_dataset_parameters(parser)
@@ -153,13 +119,18 @@ def main(argv):
     predictions = {}
 
     if args.prediction_file is None:
-        # Instantiate a dataset to generate the samples for evaluation
-        dataset = build_dataset(
-            config,
-            args.model_tags,
-            args.category_tags,
-            ["train", "val", "test"],
-            random_subset=args.random_subset
+        # Create a dataset instance to generate the input samples
+        dataset_directory = config["data"]["dataset_directory"]
+        dataset_type = config["data"]["dataset_type"]
+        train_test_splits_file = config["data"]["splits_file"]
+        dataset = dataset_factory(
+            config["data"]["dataset_factory"],
+            (ModelCollectionBuilder(config)
+                .with_dataset(dataset_type)
+                .filter_category_tags(args.category_tags)
+                .filter_tags(args.model_tags)
+                .random_subset(args.random_subset)
+                .build(dataset_directory)),
         )
         assert len(dataset) == 1
 
@@ -189,31 +160,17 @@ def main(argv):
         predictions["phi_volume"] = preds[1]
         predictions["y_prim"] = y_pred
 
-    print("IOU:", iou_metric(predictions, targets))
-
     # Get the renderables from the deformed vertices and faces
     vertices = y_pred.detach()
     parts = range(n_primitives)
-    if args.only_part is not None:
-        parts = [args.only_part]
     renderables = [
         Mesh.from_faces(
             vertices[0, :, i],
             faces,
-            colors=get_colors(0 if args.no_color else i)
+            colors=get_colors(i)
         )
         for i in parts
     ]
-    if args.show_vertices:
-        renderables = [
-            Mesh.from_faces(
-                vertices[0, :, i],
-                faces,
-                colors=colormap(np.linspace(0, 1, vertices.shape[1]))
-            )
-            for i in parts
-        ]
-
     behaviours = [
         SceneInit(
             scene_init(
@@ -237,17 +194,6 @@ def main(argv):
                 speed=1/180
             )
         ]
-    if args.without_screen:
-        path_to_gif = "/{}/{}.gif".format(
-            args.output_directory, args.model_tags[0]
-        )
-        behaviours += [
-            SaveFrames(args.save_frames, 1),
-            SaveGif(path_to_gif, 1)
-        ]
-        render(renderables, size=args.window_size, behaviours=behaviours,
-               n_frames=args.n_frames)
-    else:
         show(renderables, size=args.window_size,
              behaviours=behaviours + [SnapshotOnKey()])
 
